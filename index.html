@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Service PAP United Tractors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        .status-completed {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-blue-800 text-white w-64 flex flex-col">
+            <div class="p-4 flex items-center justify-between border-b border-blue-700">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-building text-xl"></i>
+                    <span class="sidebar-text font-bold text-lg">PAP System</span>
+                </div>
+                <button id="toggleSidebar" class="text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="flex items-center space-x-2 p-2 rounded hover:bg-blue-700 transition" id="dashboardLink">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2 p-2 rounded hover:bg-blue-700 transition" id="dataPAPLink">
+                    <i class="fas fa-table"></i>
+                    <span class="sidebar-text">Data PAP</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2 p-2 rounded hover:bg-blue-700 transition" id="addPAPLink">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="sidebar-text">Tambah PAP</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-blue-700">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="sidebar-text">Monica</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-gray-800" id="pageTitle">Welcome</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-gray-500 cursor-pointer"></i>
+                        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="p-6">
+                <!-- Welcome Screen -->
+                <div id="welcomeScreen" class="fade-in">
+                    <div class="bg-white rounded-lg shadow p-8 text-center">
+                        <div class="max-w-2xl mx-auto">
+                            <i class="fas fa-building text-6xl text-blue-500 mb-6"></i>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-4">Selamat Datang di Sistem Service PAP</h2>
+                            <p class="text-gray-600 mb-8">Sistem ini membantu Anda mengelola dokumen PAP (Proyek Anggaran Perusahaan) dengan mudah. Mulai dengan melihat data PAP, menambahkan data baru, atau memeriksa status upload.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                    <h3 class="font-semibold text-blue-800 mb-2">Total PAP</h3>
+                                    <p class="text-2xl font-bold" id="totalPAP">0</p>
+                                </div>
+                                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                                    <h3 class="font-semibold text-yellow-800 mb-2">Belum Upload</h3>
+                                    <p class="text-2xl font-bold" id="pendingPAP">0</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                                    <h3 class="font-semibold text-green-800 mb-2">Done Upload</h3>
+                                    <p class="text-2xl font-bold" id="completedPAP">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data PAP Table -->
+                <div id="dataPAPScreen" class="hidden fade-in">
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h2 class="text-xl font-semibold text-gray-800">Data PAP Perusahaan</h2>
+                            <div class="flex space-x-2">
+                                <div class="relative">
+                                    <input type="text" placeholder="Cari PAP..." class="pl-8 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition" id="addNewPAP">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Tambah PAP</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID PAP</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Dibuat</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Upload</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="papTableBody">
+                                    <!-- Data will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 border-t flex justify-between items-center">
+                            <div class="text-sm text-gray-500">
+                                Menampilkan <span id="currentItems">0</span> dari <span id="totalItems">0</span> data
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 border rounded-md disabled:opacity-50" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="px-3 py-1 border rounded-md disabled:opacity-50" id="nextPage" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add PAP Form -->
+                <div id="addPAPScreen" class="hidden fade-in">
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b">
+                            <h2 class="text-xl font-semibold text-gray-800">Tambah Data PAP Baru</h2>
+                        </div>
+                        <div class="p-6">
+                            <form id="papForm">
+                                <div class="mb-4">
+                                    <label for="papId" class="block text-sm font-medium text-gray-700 mb-1">ID PAP</label>
+                                    <input type="text" id="papId" name="papId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <p class="mt-1 text-sm text-gray-500">Masukkan ID unik untuk PAP ini</p>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status Upload</label>
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="uploadStatus" value="pending" class="h-4 w-4 text-blue-600" checked>
+                                            <span class="ml-2">Belum di Upload</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="uploadStatus" value="completed" class="h-4 w-4 text-blue-600">
+                                            <span class="ml-2">Done Upload</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" id="cancelAddPAP" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                                        Simpan 
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit PAP Modal -->
+                <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="text-lg font-semibold">Edit Data PAP</h3>
+                            <button id="closeEditModal" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <form id="editForm">
+                                <input type="hidden" id="editPapId">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status Upload</label>
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="editUploadStatus" value="pending" class="h-4 w-4 text-blue-600">
+                                            <span class="ml-2">Belum di Upload</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="editUploadStatus" value="completed" class="h-4 w-4 text-blue-600">
+                                            <span class="ml-2">Done Upload</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" id="cancelEdit" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                                        Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sample data storage
+        let papData = [
+            { id: 'PAP-001', date: '2023-06-15', status: 'completed' },
+            { id: 'PAP-002', date: '2023-06-16', status: 'pending' },
+            { id: 'PAP-003', date: '2023-06-17', status: 'completed' },
+            { id: 'PAP-004', date: '2023-06-18', status: 'pending' },
+            { id: 'PAP-005', date: '2023-06-19', status: 'pending' }
+        ];
+
+        // DOM Elements
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const dataPAPScreen = document.getElementById('dataPAPScreen');
+        const addPAPScreen = document.getElementById('addPAPScreen');
+        const papTableBody = document.getElementById('papTableBody');
+        const totalPAP = document.getElementById('totalPAP');
+        const pendingPAP = document.getElementById('pendingPAP');
+        const completedPAP = document.getElementById('completedPAP');
+        const pageTitle = document.getElementById('pageTitle');
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const editPapId = document.getElementById('editPapId');
+        
+        // Navigation Links
+        const dashboardLink = document.getElementById('dashboardLink');
+        const dataPAPLink = document.getElementById('dataPAPLink');
+        const addPAPLink = document.getElementById('addPAPLink');
+        const addNewPAP = document.getElementById('addNewPAP');
+        const cancelAddPAP = document.getElementById('cancelAddPAP');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const cancelEdit = document.getElementById('cancelEdit');
+        
+        // Form
+        const papForm = document.getElementById('papForm');
+        
+        // Initialize
+        updateStats();
+        renderTable();
+        
+        // Event Listeners
+        dashboardLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showWelcomeScreen();
+        });
+        
+        dataPAPLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showDataPAPScreen();
+        });
+        
+        addPAPLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showAddPAPScreen();
+        });
+        
+        addNewPAP.addEventListener('click', () => {
+            showAddPAPScreen();
+        });
+        
+        cancelAddPAP.addEventListener('click', () => {
+            showDataPAPScreen();
+        });
+        
+        closeEditModal.addEventListener('click', () => {
+            editModal.classList.add('hidden');
+        });
+        
+        cancelEdit.addEventListener('click', () => {
+            editModal.classList.add('hidden');
+        });
+        
+        // Form Submission
+        papForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const papId = document.getElementById('papId').value;
+            const uploadStatus = document.querySelector('input[name="uploadStatus"]:checked').value;
+            
+            // Add new PAP
+            const newPAP = {
+                id: papId,
+                date: new Date().toISOString().split('T')[0],
+                status: uploadStatus
+            };
+            
+            papData.unshift(newPAP);
+            updateStats();
+            renderTable();
+            papForm.reset();
+            showDataPAPScreen();
+            
+            // Show success message
+            alert(`PAP ${papId} berhasil ditambahkan!`);
+        });
+        
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const papId = editPapId.value;
+            const uploadStatus = document.querySelector('input[name="editUploadStatus"]:checked').value;
+            
+            // Update PAP status
+            const index = papData.findIndex(pap => pap.id === papId);
+            if (index !== -1) {
+                papData[index].status = uploadStatus;
+                updateStats();
+                renderTable();
+                editModal.classList.add('hidden');
+                
+                // Show success message
+                alert(`Status PAP ${papId} berhasil diperbarui!`);
+            }
+        });
+        
+        // Functions
+        function showWelcomeScreen() {
+            welcomeScreen.classList.remove('hidden');
+            dataPAPScreen.classList.add('hidden');
+            addPAPScreen.classList.add('hidden');
+            pageTitle.textContent = 'Welcome';
+            updateStats();
+        }
+        
+        function showDataPAPScreen() {
+            welcomeScreen.classList.add('hidden');
+            dataPAPScreen.classList.remove('hidden');
+            addPAPScreen.classList.add('hidden');
+            pageTitle.textContent = 'Data PAP';
+            renderTable();
+        }
+        
+        function showAddPAPScreen() {
+            welcomeScreen.classList.add('hidden');
+            dataPAPScreen.classList.add('hidden');
+            addPAPScreen.classList.remove('hidden');
+            pageTitle.textContent = 'Tambah PAP';
+        }
+        
+        function updateStats() {
+            totalPAP.textContent = papData.length;
+            pendingPAP.textContent = papData.filter(pap => pap.status === 'pending').length;
+            completedPAP.textContent = papData.filter(pap => pap.status === 'completed').length;
+        }
+        
+        function renderTable() {
+            papTableBody.innerHTML = '';
+            
+            if (papData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                        Tidak ada data PAP. Silakan tambahkan data baru.
+                    </td>
+                `;
+                papTableBody.appendChild(row);
+                return;
+            }
+            
+            papData.forEach(pap => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${pap.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-gray-500">${pap.date}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${pap.status === 'pending' ? 'status-pending' : 'status-completed'}">
+                            ${pap.status === 'pending' ? 'Belum di Upload' : 'Done Upload'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-3 edit-btn" data-id="${pap.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${pap.id}">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </td>
+                `;
+                papTableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const papId = e.currentTarget.getAttribute('data-id');
+                    openEditModal(papId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const papId = e.currentTarget.getAttribute('data-id');
+                    if (confirm(`Apakah Anda yakin ingin menghapus PAP ${papId}?`)) {
+                        deletePAP(papId);
+                    }
+                });
+            });
+            
+            // Update pagination info
+            document.getElementById('currentItems').textContent = papData.length;
+            document.getElementById('totalItems').textContent = papData.length;
+        }
+        
+        function openEditModal(papId) {
+            const pap = papData.find(pap => pap.id === papId);
+            if (pap) {
+                editPapId.value = pap.id;
+                document.querySelector(`input[name="editUploadStatus"][value="${pap.status}"]`).checked = true;
+                editModal.classList.remove('hidden');
+            }
+        }
+        
+        function deletePAP(papId) {
+            papData = papData.filter(pap => pap.id !== papId);
+            updateStats();
+            renderTable();
+            alert(`PAP ${papId} berhasil dihapus!`);
+        }
+        
+        // Sidebar toggle functionality
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                mainContent.style.marginLeft = '70px';
+            } else {
+                mainContent.style.marginLeft = '256px';
+            }
+        });
+    </script>
+</body>
+</html>
